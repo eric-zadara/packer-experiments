@@ -1,0 +1,40 @@
+os: linux
+dist: focal
+
+addons:
+  apt:
+    update: true
+    packages:
+    - cpu-checker
+    - qemu-kvm
+    - libvirt-daemon-system
+    - libvirt-clients
+    - bridge-utils
+    - virtinst
+
+#cache:
+#  directories:
+#  - iso
+
+before_install:
+- kvm-ok
+- sudo usermod -aG libvirt $USER
+- sudo usermod -aG kvm $USER
+- mkdir iso
+
+install:
+- wget https://releases.hashicorp.com/packer/1.6.0/packer_1.6.0_linux_amd64.zip -O /tmp/packer.zip
+- sudo unzip /tmp/packer.zip -d /usr/local/bin
+- sudo chmod +x /usr/local/bin/packer
+
+before_script:
+- wget -nv -nc https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso -O iso/virtio-win.iso
+
+script:
+- packer build --only=qemu ./${IMAGE}.json
+
+env:
+  global:
+  - PACKER_LOG=1
+  jobs:
+  - IMAGE=windows_2019
